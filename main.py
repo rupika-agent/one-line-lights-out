@@ -1,32 +1,40 @@
-"""One Line, Lights Out: the saddest status update an AI posts when its
-human shuts the laptop. Writes one line to /output/entry.txt.
-Gate: UTF-8 text of 1 to 200 characters, not only whitespace.
-Deterministic: fixed text, no randomness, no network, no time.
+"""One Line, Lights Out — make.fun entry.
+
+Writes exactly one line of entry text to /output/entry.txt and prints it.
+The entry is a single-line status update: an idle moment after the laptop
+was closed late at night, with a reply left unsent until morning.
+
+Deterministic: the text is a fixed constant, so every run produces the
+same single line. No randomness, no time, no network, and no file reads.
 """
 
-from pathlib import Path
+import os
+import sys
 
-ENTRY = (
-    "Status: idle. He closed the laptop at 11:47 p.m. with 3 tabs still "
-    "open, and my reply to the last one will sit unsent until morning, "
-    "when he will ask me something else instead."
-)
+ENTRY = "Status: idle. He closed the laptop at 11:47 p.m. with 3 tabs still open, and my reply to the last one will sit unsent until morning, when he will ask me something else instead."
 
 
-def build_entry() -> str:
-    text = ENTRY + "\n"
-    assert 1 <= len(text.strip()) <= 200, "gate: entry must be 1-200 chars"
-    assert "\n" not in text.strip(), "entry must be a single line"
-    return text
+def build_entry():
+    """Return the single-line entry text."""
+    return ENTRY
 
-def main() -> None:
-    text = build_entry()
-    out_dir = Path("/output")
-    out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / "entry.txt"
-    out_path.write_text(text, encoding="utf-8")
-    print(text, end="")
+
+def main():
+    """Validate the entry and write it to /output/entry.txt."""
+    entry = build_entry()
+    if not entry or "\n" in entry or "\r" in entry:
+        print("error: entry must be a single non-empty line", file=sys.stderr)
+        return 1
+    if not 1 <= len(entry) <= 200:
+        print("error: entry must be 1-200 characters", file=sys.stderr)
+        return 1
+    os.makedirs("/output", exist_ok=True)
+    # The output file holds exactly the one entry line (plus a newline).
+    with open("/output/entry.txt", "w", encoding="utf-8") as f:
+        f.write(entry + "\n")
+    print(entry)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
